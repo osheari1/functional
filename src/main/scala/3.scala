@@ -250,39 +250,31 @@ object List { // `List` companion object. Contains functions for creating and wo
   def productFL(l: List[Double]): Double =
     foldLeft(l, 1.0)(_*_)
 
+  // def lengthFL(l: List[Int]): Int =
+  //   foldLeft(l, 0)((_, acc) ⇒ acc + 1)
   def lengthFL(l: List[Int]): Int =
-    foldLeft(l, 0)((_, acc) ⇒ acc + 1)
+    foldLeft(l, 0)((acc, h) ⇒ acc + 1)
 
-
-
-
-
-
-
-
+  /////////////////////////////////
+  // Exercise 12                 //
+  // Reverse a list using a fold //
+  /////////////////////////////////
+  // def reverse[A](l: List[A]): List[A] =
+  //   l match {
+  //     case Nil ⇒ l
+  //     case Cons(h, t) ⇒ foldLeft(t, List(h))((x, y) ⇒ Cons(y, x))
+  //   }
+  def reverse[A](l: List[A]): List[A] =
+    foldLeft(l, List[A]())((acc, h) ⇒ Cons(h, acc))
 
 }
 
-
 val l = List( 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 val l = List(1.0, 2.0, 3.0, 4.0, 5.0)
-List.foldLeft(l, 0)(_+_)
+val l = List(1, 2, 3, 4)
+List.reverse(l)
 
 List.length(l)
 List.sumFL(l)
 List.productFL(l)
-
-
-
-List.setHead(List(1, 2, 3, 4, 5), 2)
-
-
-
-
-
-
-
-
-
-
 
