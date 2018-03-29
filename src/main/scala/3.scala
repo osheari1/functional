@@ -5,6 +5,7 @@ case object Nil extends List[Nothing] // A `List` data constructor representing 
 /* Another data constructor, representing nonempty lists. Note that `tail` is another `List[A]`,
  which may be `Nil` or another `Cons`.
  */
+// +A Indicates A is polymorphic in type. ie if B is a subtype of A, then B can be passed to List[A]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
 
 
@@ -213,13 +214,26 @@ object List { // `List` companion object. Contains functions for creating and wo
   def length[A](l: List[A]): Int =
     foldRight(l, 0)((_, acc) => acc + 1)
 
-
-
+  /////////////////////////////
+  // Excersize 9             //
+  // Tail recursive foldLeft //
+  /////////////////////////////
+  // def foldRight[A, B](as: List[A], z: B)(f: (A, B) ⇒ B): B =
+  //   as match {
+  //     case Nil ⇒ z
+  //     case Cons(x, xs) ⇒ f(x, foldRight(xs, z)(f))
+  //   }
+  @annotation.tailrec
+  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) ⇒ B): B = as match {
+    case Nil ⇒ z
+    // Below is wrong. Need to swap fold left and f. Keep foldLeft in tail position
+    case Cons(x, xs) ⇒ f(foldLeft(xs, z)(f), x)
+  }
 
 }
 
 
 val l = List( 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+List.foldLeft(l, 0)(_+_)
 List.length(r)
-
 List.setHead(List(1, 2, 3, 4, 5), 2)
