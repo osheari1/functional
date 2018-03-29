@@ -44,18 +44,6 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(h, t) ⇒ Cons(h, append(t, a2))
     }
 
-  // Utility function
-  def foldRight[A, B](as: List[A], z: B)(f: (A, B) ⇒ B): B =
-    as match {
-      case Nil ⇒ z
-      case Cons(x, xs) ⇒ f(x, foldRight(xs, z)(f))
-    }
-
-  def sum2(ns: List[Int]) =
-    foldRight(ns, 0)((x, y) ⇒ x + y)
-
-  def product2(ns: List[Double]) =
-    foldRight(ns, 1.0)(_ * _)
 
   ///////////////////
   // Exercise 2    //
@@ -168,9 +156,70 @@ object List { // `List` companion object. Contains functions for creating and wo
     }
     go(l)
   }
+
+  // Placing f in its own argument group allows type inference of f
+  def foldRight[A, B](as: List[A], z: B)(f: (A, B) ⇒ B): B =
+    as match {
+      case Nil ⇒ z
+      case Cons(x, xs) ⇒ f(x, foldRight(xs, z)(f))
+    }
+
+  def sum2(ns: List[Int]) =
+    foldRight(ns, 0)((x, y) ⇒ x + y)
+
+  def product2(ns: List[Double]) =
+    foldRight(ns, 1.0)(_ * _)
+
+  ///////////////////////////////////////////
+  // Exercise 7                            //
+  // Can product implementing foldRight be //
+  // short-circuted, halting recursion     //
+  ///////////////////////////////////////////
+  /*
+   No, this is not possible! The reason is because _before_ we ever
+   call our function, `f`, we evaluate its argument,
+   which in the case of `foldRight` means traversing the list all
+   the way to the end. We need _non-strict_ evaluation
+   to support early termination---we discuss this in chapter 5.
+   */
+
+  /////////////////
+  // Excersize 8 //
+  /////////////////
+  val example8 = foldRight(List(1, 2, 3), Nil:List[Int])(Cons(_, _))
+  /*
+   We get back the original list! Why is that?
+   As we mentioned earlier, one way of thinking
+   about what `foldRight` "does"
+   is it replaces the `Nil` constructor of the list with the `z` argument,
+   and it replaces the `Cons` constructor with
+   the given function, `f`. If we just supply `Nil` for `z` and `Cons` for `f`,
+   then we get back the input list.
+
+   foldRight(Cons(1, Cons(2, Cons(3, Nil))), Nil:List[Int])(Cons(_,_))
+   Cons(1, foldRight(Cons(2, Cons(3, Nil)), Nil:List[Int])(Cons(_,_)))
+   Cons(1, Cons(2, foldRight(Cons(3, Nil), Nil:List[Int])(Cons(_,_))))
+   Cons(1, Cons(2, Cons(3, foldRight(Nil, Nil:List[Int])(Cons(_,_)))))
+   Cons(1, Cons(2, Cons(3, Nil)))
+   */
+
+  ////////////////////////////////////
+  // Excersize 9                    //
+  // Length of list using foldRight //
+  ////////////////////////////////////
+  // def length[A](l: List[A]): Int =
+  //   foldRight(l, 0)((_, n: Int) ⇒ n + 1)
+
+  def length[A](l: List[A]): Int =
+    foldRight(l, 0)((_, acc) => acc + 1)
+
+
+
+
 }
 
-val l = List(1, 2, 3, 4)
-List.init2(l)
+
+val l = List( 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+List.length(r)
 
 List.setHead(List(1, 2, 3, 4, 5), 2)
