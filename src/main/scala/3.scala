@@ -215,7 +215,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldRight(l, 0)((_, acc) => acc + 1)
 
   /////////////////////////////
-  // Excersize 9             //
+  // Excersize 10            //
   // Tail recursive foldLeft //
   /////////////////////////////
   // def foldRight[A, B](as: List[A], z: B)(f: (A, B) ⇒ B): B =
@@ -223,17 +223,66 @@ object List { // `List` companion object. Contains functions for creating and wo
   //     case Nil ⇒ z
   //     case Cons(x, xs) ⇒ f(x, foldRight(xs, z)(f))
   //   }
-  @annotation.tailrec
-  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) ⇒ B): B = as match {
-    case Nil ⇒ z
-    // Below is wrong. Need to swap fold left and f. Keep foldLeft in tail position
-    case Cons(x, xs) ⇒ f(foldLeft(xs, z)(f), x)
+  /*
+   It's common practice to annotate functions you expect to be
+   tail-recursive with the `tailrec` annotation. If the function
+   is not tail-recursive, it will yield a compile error, rather than
+   silently compiling the code and resulting in greater stack space usage at runtime.
+   */
+  // @annotation.tailrec
+  // def foldLeft[A, B](as: List[A], z: B)(f: (B, A) ⇒ B): B = as match {
+  //   case Nil ⇒ z
+  //   case Cons(x, xs) ⇒ foldLeft(xs, f(z, x))(f)
+  // }
+    @annotation.tailrec
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+    case Nil => z
+    case Cons(h,t) => foldLeft(t, f(z,h))(f)
   }
+
+  ////////////////////////////
+  // Excercise 11           //
+  // sum, product, length   //
+  ////////////////////////////
+  def sumFL(l: List[Int]): Int =
+    foldLeft(l, 0)(_+_)
+
+  def productFL(l: List[Double]): Double =
+    foldLeft(l, 1.0)(_*_)
+
+  def lengthFL(l: List[Int]): Int =
+    foldLeft(l, 0)((_, acc) ⇒ acc + 1)
+
+
+
+
+
+
+
+
 
 }
 
 
 val l = List( 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+val l = List(1.0, 2.0, 3.0, 4.0, 5.0)
 List.foldLeft(l, 0)(_+_)
-List.length(r)
+
+List.length(l)
+List.sumFL(l)
+List.productFL(l)
+
+
+
 List.setHead(List(1, 2, 3, 4, 5), 2)
+
+
+
+
+
+
+
+
+
+
+
