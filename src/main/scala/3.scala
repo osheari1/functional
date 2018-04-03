@@ -8,7 +8,6 @@ case object Nil extends List[Nothing] // A `List` data constructor representing 
 // +A Indicates A is polymorphic in type. ie if B is a subtype of A, then B can be passed to List[A]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
 
-
 object List { // `List` companion object. Contains functions for creating and working with lists.
   def sum(ints: List[Int]): Int = ints match { // A function that uses pattern matching to add up a list of integers
     case Nil => 0 // The sum of the empty list is 0.
@@ -367,7 +366,38 @@ object List { // `List` companion object. Contains functions for creating and wo
   // Turn each value in a List[Double] to a String //
   ///////////////////////////////////////////////////
   def doubleToString(l: List[Double]): List[String] =
-    foldRight(l, Nil: List[String])((h, t) ⇒ Cons(h.toString(), t))
+    foldRight(l, Nil: List[String])((h, t) ⇒ Cons(h.toString, t))
+
+  ////////////////////////
+  // Exercise 18        //
+  // Write map function //
+  ////////////////////////
+  /*
+   A natural solution is using `foldRight`, but our implementation
+   of `foldRight` is not stack-safe. We can
+   use `foldRightViaFoldLeft` to avoid the stack overflow
+   (variation 1), but more commonly, with our current
+   implementation of `List`, `map` will just be implemented
+   using local mutation (variation 2). Again, note that the
+   mutation isn't observable outside the function, since we're
+   only mutating a buffer that we've allocated.
+   */
+  // def map[A, B](l: List[A])(f: A ⇒ B): List[B] =
+  //   foldRight(l, Nil:List[B])((h, t) ⇒ Cons(f(h), t))
+  def map[A, B](l: List[A])(f: A ⇒ B): List[B] =
+    foldRightViaFoldLeft(l, Nil:List[B])((h, t) ⇒ Cons(f(h), t))
+  def mapViaMutation[A, B](l: List[A])(f: A ⇒ B): List[B] = {
+    val buf = new collection.mutable.ListBuffer[B]
+    def go(l: List[A]): Unit = l match {
+      case Nil ⇒ ()
+      case Cons(h, t) ⇒ buf += f(h); go(t)
+    }
+    go(l)
+    List(buf.toList: _*) // convert from standard scala list to our list
+  }
+
+
+
 }
 
 
@@ -377,10 +407,11 @@ val ld = List(1.0, 2.0, 3.0, 4.0)
 val l2 = List(5, 6, 7, 8)
 val ll = List(l, l2)
 
-List.doubleToString(ld)
-List.add1(l)
-List.add1FoldLeft(l)
-List.concat(ll)
-List.appendFoldLeft(l, ll)
+List.map(l)(_+1)
+// List.doubleToString(ld)
+// List.add1(l)
+// List.add1FoldLeft(l)
+// List.concat(ll)
+// List.appendFoldLeft(l, ll)
 
 
