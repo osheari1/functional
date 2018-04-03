@@ -292,6 +292,18 @@ object List { // `List` companion object. Contains functions for creating and wo
   def foldLeftViaFoldRight[A, B](l: List[A], z: B)(f: (B, A) ⇒ B): B =
     foldRight(l, (b: B) ⇒ b)((a, g) ⇒ b ⇒ g(f(b, a)))(z)
 
+  ////////////////////////////////////////////////////////
+  // Exercise 14                                        //
+  // Implement append in terms of foldLeft or foldRight //
+  ////////////////////////////////////////////////////////
+  def appendFoldLeft[A](x: List[A], y: List[A]): List[A] =
+    foldLeft(reverse(x), y)((b, a) ⇒ Cons(a, b))
+
+  def appendFoldRight[A](l: List[A], r: List[A]): List[A] =
+    foldRight(l, r)(Cons(_, _))
+
+  def concat[A](l: List[List[A]]): List[A] =
+    // Solve recursivley
 
 
 
@@ -301,6 +313,9 @@ object List { // `List` companion object. Contains functions for creating and wo
 val l = List( 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 val l = List(1.0, 2.0, 3.0, 4.0, 5.0)
 val l = List(1, 2, 3, 4)
+val ll = List(1, 2, 3, 4)
+List.appendFoldLeft(l, ll)
+
 List.foldLeftViaFoldRight(l, 0)(_+_)
 
 List.reverse(l)
