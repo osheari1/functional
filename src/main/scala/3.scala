@@ -88,8 +88,10 @@ object List { // `List` companion object. Contains functions for creating and wo
   ////////////////
   // Not a true implementation, has bugs.
   /*
-   Somewhat overkill, but to illustrate the feature we're using a _pattern guard_, to only match a `Cons` whose head
-   satisfies our predicate, `f`. The syntax is to add `if <cond>` after the pattern, before the `=>`, where `<cond>` can
+   Somewhat overkill, but to illustrate the feature we're using a _pattern guard_,
+   to only match a `Cons` whose head
+   satisfies our predicate, `f`. The syntax is to add `if <cond>` after the pattern,
+   before the `=>`, where `<cond>` can
    use any of the variables introduced by the pattern.
    */
   // def dropWhile[A](l: List[A], f: A ⇒ Boolean): List[A] =
@@ -273,14 +275,20 @@ object List { // `List` companion object. Contains functions for creating and wo
   // Visa-versa                           //
   //////////////////////////////////////////
   /*
-   The implementation of `foldRight` in terms of `reverse` and `foldLeft` is a common trick for avoiding stack overflows
-   when implementing a strict `foldRight` function as we've done in this chapter. (We'll revisit this in a later chapter,
+   The implementation of `foldRight` in terms of `reverse` and
+   `foldLeft` is a common trick for avoiding stack overflows
+   when implementing a strict `foldRight` function as we've done i
+   n this chapter. (We'll revisit this in a later chapter,
    when we discuss laziness).
 
-   The other implementations build up a chain of functions which, when called, results in the operations being performed
-   with the correct associativity. We are calling `foldRight` with the `B` type being instantiated to `B => B`, then
-   calling the built up function with the `z` argument. Try expanding the definitions by substituting equals for equals
-   using a simple example, like `foldLeft(List(1,2,3), 0)(_ + _)` if this isn't clear. Note these implementations are
+   The other implementations build up a chain of functions which,
+   when called, results in the operations being performed
+   with the correct associativity. We are calling `foldRight` with the `B` type being
+   instantiated to `B => B`, then
+   calling the built up function with the `z` argument. Try expanding the
+   definitions by substituting equals for equals
+   using a simple example, like `foldLeft(List(1,2,3), 0)(_ + _)` if this isn't clear.
+   Note these implementations are
    more of theoretical interest - they aren't stack-safe and won't work for large lists.
    */
   def foldRightViaFoldLeft[A, B](l: List[A], z: B)(f: (A, B) ⇒ B): B =
@@ -302,25 +310,77 @@ object List { // `List` companion object. Contains functions for creating and wo
   def appendFoldRight[A](l: List[A], r: List[A]): List[A] =
     foldRight(l, r)(Cons(_, _))
 
+  ///////////////////////////////////////////////////
+  // Exercise 15                                   //
+  // Write a function that concats a list of lists //
+  ///////////////////////////////////////////////////
+  /*
+  Since `append` takes time proportional to its first argument,
+  and this first argument never grows because of the
+  right-associativity of `foldRight`, this function is linear in
+  the total length of all lists. You may want to try
+  tracing the execution of the implementation on paper
+  to convince yourself that this works.
+
+  Note that we're simply referencing the `append` function,
+  without writing something like `(x,y) => append(x,y)`
+  or `append(_,_)`. In Scala there is a rather arbitrary
+  distinction between functions defined as _methods_, which are
+  introduced with the `def` keyword, and function values, which
+  are the first-class objects we can pass to other
+  functions, put in collections, and so on. This is a case where
+  Scala lets us pretend the distinction doesn't exist.
+  In other cases, you'll be forced to write `append _`
+  (to convert a `def` to a function value)
+  or even `(x: List[A], y: List[A]) => append(x,y)` if the
+  function is polymorphic and the type arguments aren't known.
+  */
+  // def concat[A](l: List[List[A]]): List[A] = {
+  //   def go[A](h: List[A], l: List[List[A]]): List[A] = l match {
+  //     case Nil ⇒ sys.error("Concat of empty list")
+  //     case Cons(x, Nil) ⇒ append(h, x)
+  //     case Cons(x, xs) ⇒ go(append(h, x), xs)
+  //   }
+  //   l match {
+  //     case Nil ⇒ sys.error("Concat of empty list")
+  //     case Cons(h, t) ⇒ go(h, t)
+  //   }
+  // }
+  // def concat2[A](l: List[List[A]]): List[A] = l match {
+  //   case Nil ⇒ sys.error("Concat of empty list")
+  //   case Cons(h, t) ⇒ foldRight(t, h)((a, b) ⇒ append(b, a))
+  // }
+  // def concat[A](l: List[List[A]]): List[A] =
+  //   foldRight(l, List[A]())((a, b) ⇒ append(a, b))
   def concat[A](l: List[List[A]]): List[A] =
-    // Solve recursivley
+    foldRight(l, Nil: List[A])(append)
 
+  //////////////////////////////
+  // Exercise 16              //
+  // Adds one to each element //
+  //////////////////////////////
+  def add1(l: List[Int]): List[Int] =
+    foldRight(l, Nil: List[Int])((h, t) ⇒ Cons(h+1, t))
 
-
-
+  ///////////////////////////////////////////////////
+  // Exercise 17                                   //
+  // Turn each value in a List[Double] to a String //
+  ///////////////////////////////////////////////////
+  def doubleToString(l: List[Double]): List[String] =
+    foldRight(l, Nil: List[String])((h, t) ⇒ Cons(h.toString(), t))
 }
 
-val l = List( 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-val l = List(1.0, 2.0, 3.0, 4.0, 5.0)
+
+
 val l = List(1, 2, 3, 4)
-val ll = List(1, 2, 3, 4)
+val ld = List(1.0, 2.0, 3.0, 4.0)
+val l2 = List(5, 6, 7, 8)
+val ll = List(l, l2)
+
+List.doubleToString(ld)
+List.add1(l)
+List.add1FoldLeft(l)
+List.concat(ll)
 List.appendFoldLeft(l, ll)
 
-List.foldLeftViaFoldRight(l, 0)(_+_)
-
-List.reverse(l)
-
-List.length(l)
-List.sumFL(l)
-List.productFL(l)
 
