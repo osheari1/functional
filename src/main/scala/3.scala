@@ -396,7 +396,47 @@ object List { // `List` companion object. Contains functions for creating and wo
     List(buf.toList: _*) // convert from standard scala list to our list
   }
 
+  /////////////////
+  // Exercise 19 //
+  // Filter      //
+  /////////////////
+  // def filter[A](l: List[A])(f: A ⇒ Boolean): List[A] = {
+  //   val buf = new collection.mutable.ListBuffer[A]
+  //   def go(l: List[A]): Unit = l match {
+  //     case Nil ⇒ ()
+  //     case Cons(h, t) ⇒ {
+  //       if (f(h)) {
+  //         buf += h
+  //         go(t)
+  //       }
+  //       else go(t)
+  //     }
+  //   }
+  //   go(l)
+  //   List(buf.toList: _*)
+  // }
+  // def filter[A](l: List[A])(f: A ⇒ Boolean): List[A] =
+  //   foldRight(l, Nil:List[A])((h, t) ⇒ if (f(h)) Cons(h, t) else t)
+  // def filter[A](l: List[A])(f: A ⇒ Boolean): List[A] =
+  //   val buf = new collection.mutable.ListBuffer[A]
+  //   def go(l: List[A]): Unit = l match {
+  //     case Nil => ()
+  //     case Cons(h,t) => if (f(h)) buf += h; go(t)
+  //   }
+  //   go(l)
+  //   List(buf.toList: _*) // converting from the standard Scala list to the list we've defined here
+  // }
+  def filter[A](l: List[A])(f: A ⇒ Boolean): List[A] =
+    foldRightViaFoldLeft(l, Nil:List[A])((h, t) ⇒ if (f(h)) Cons(h, t) else t)
 
+
+  /////////////////
+  // Exercise 20 //
+  // Flatmap     //
+  /////////////////
+  // Can also be implemented directly using foldRight
+  def flatMap[A, B](l: List[A])(f: A ⇒ List[B]): List[B] =
+    concat(map(l)(f))
 
 }
 
@@ -407,6 +447,8 @@ val ld = List(1.0, 2.0, 3.0, 4.0)
 val l2 = List(5, 6, 7, 8)
 val ll = List(l, l2)
 
+List.flatMap(l)(i ⇒ List(i, i))
+List.filter(l)(x ⇒ x > 2)
 List.map(l)(_+1)
 // List.doubleToString(ld)
 // List.add1(l)
