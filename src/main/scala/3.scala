@@ -445,6 +445,34 @@ object List { // `List` companion object. Contains functions for creating and wo
   def filterViaFlatMap[A](l: List[A])(f: A ⇒ Boolean): List[A] =
     flatMap(l)((a ⇒ if (f(a)) List(a) else List()))
 
+  //////////////////////
+  // Exercise 22      //
+  // Element wise add //
+  //////////////////////
+  /*
+   To match on multiple values, we can put the values into a pair and match on the pair, as shown next, and the same
+   syntax extends to matching on N values (see sidebar "Pairs and tuples in Scala" for more about pair and tuple
+   objects). You can also (somewhat less conveniently, but a bit more efficiently) nest pattern matches: on the
+   right hand side of the `=>`, simply begin another `match` expression. The inner `match` will have access to all the
+   variables introduced in the outer `match`.
+
+   The discussion about stack usage from the explanation of `map` also applies here.
+   */
+  def elementWiseAdd(l: List[Int], r: List[Int]): List[Int] = (l, r) match {
+    case (Nil, _) ⇒ Nil
+    case (_, Nil) ⇒ Nil
+    case (Cons(h1, t1), Cons(h2, t2)) ⇒ Cons(h1+h2, elementWiseAdd(t1, t2))
+  }
+
+  ////////////////////////////////
+  // Exercise 23                //
+  // Generalized elementWiseAdd //
+  ////////////////////////////////
+  def elementWiseApply[A, B](l: List[A], r: List[A])(f: (A, A) ⇒ B): List[B] = (l, r) match {
+    case (Nil, _) ⇒ Nil
+    case (_, Nil) ⇒ Nil
+    case (Cons(h1, t1), Cons(h2, t2)) ⇒ Cons(f(h1, h2), elementWiseApply(t1, t2)(f))
+  }
 
 
 }
@@ -455,6 +483,8 @@ val l = List(1, 2, 3, 4)
 val ld = List(1.0, 2.0, 3.0, 4.0)
 val l2 = List(5, 6, 7, 8)
 val ll = List(l, l2)
+
+List.elementWiseApply(l, l2)(_*_)
 
 List.flatMap(l)(i ⇒ List(i, i))
 List.filter(l)(x ⇒ x > 2)
