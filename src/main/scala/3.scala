@@ -468,10 +468,10 @@ object List { // `List` companion object. Contains functions for creating and wo
   // Exercise 23                //
   // Generalized elementWiseAdd //
   ////////////////////////////////
-  def elementWiseApply[A, B](l: List[A], r: List[A])(f: (A, A) ⇒ B): List[B] = (l, r) match {
+  def zipWith[A, B](l: List[A], r: List[A])(f: (A, A) ⇒ B): List[B] = (l, r) match {
     case (Nil, _) ⇒ Nil
     case (_, Nil) ⇒ Nil
-    case (Cons(h1, t1), Cons(h2, t2)) ⇒ Cons(f(h1, h2), elementWiseApply(t1, t2)(f))
+    case (Cons(h1, t1), Cons(h2, t2)) ⇒ Cons(f(h1, h2), zipWith(t1, t2)(f))
   }
 
 
