@@ -450,10 +450,14 @@ object List { // `List` companion object. Contains functions for creating and wo
   // Element wise add //
   //////////////////////
   /*
-   To match on multiple values, we can put the values into a pair and match on the pair, as shown next, and the same
-   syntax extends to matching on N values (see sidebar "Pairs and tuples in Scala" for more about pair and tuple
-   objects). You can also (somewhat less conveniently, but a bit more efficiently) nest pattern matches: on the
-   right hand side of the `=>`, simply begin another `match` expression. The inner `match` will have access to all the
+   To match on multiple values, we can put the values into a pair and match on
+   the pair, as shown next, and the same
+   syntax extends to matching on N values (see sidebar "Pairs and tuples in Scala"
+   for more about pair and tuple
+   objects). You can also (somewhat less conveniently, but a bit more efficiently)
+   nest pattern matches: on the
+   right hand side of the `=>`, simply begin another `match` expression. The inner
+   `match` will have access to all the
    variables introduced in the outer `match`.
 
    The discussion about stack usage from the explanation of `map` also applies here.
@@ -474,7 +478,39 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Cons(h1, t1), Cons(h2, t2)) ⇒ Cons(f(h1, h2), zipWith(t1, t2)(f))
   }
 
-
+  ////////////////////
+  // Exercise 24    //
+  // hasSubsequence //
+  ////////////////////
+  /*
+   There's nothing particularly bad about this implementation,
+   except that it's somewhat monolithic and easy to get wrong.
+   Where possible, we prefer to assemble functions like this using
+   combinations of other functions. It makes the code more obviously
+   correct and easier to read and understand. Notice that in this
+   implementation we need special purpose logic to break out of our
+   loops early. In Chapter 5 we'll discuss ways of composing functions
+   like this from simpler components, without giving up the efficiency
+   of having the resulting functions work in one pass over the data.
+   It's good to specify some properties about these functions.
+   For example, do you expect these expressions to be true?
+   (xs append ys) startsWith xs
+   xs startsWith Nil
+   (xs append ys append zs) hasSubsequence ys
+   xs hasSubsequence Nil
+   */
+  @annotation.tailrec
+  def startsWith[A](l: List[A], prefix: List[A]): Boolean = (l,prefix) match {
+    case (_, Nil) ⇒ true
+    case (Cons(h, t), Cons(h2, t2)) if h == h2 ⇒ startsWith(t, t2)
+    case _ ⇒ false
+  }
+  @annotation.tailrec
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = sup match {
+    case Nil ⇒ sub == Nil
+    case _ if startsWith(sup, sub) ⇒ true
+    case Cons(h, t) ⇒ hasSubsequence(t, sub)
+  }
 }
 
 
@@ -482,8 +518,10 @@ object List { // `List` companion object. Contains functions for creating and wo
 val l = List(1, 2, 3, 4)
 val ld = List(1.0, 2.0, 3.0, 4.0)
 val l2 = List(5, 6, 7, 8)
+val l3 = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 val ll = List(l, l2)
 
+List.hasSubsequence(l3, l2)
 List.elementWiseApply(l, l2)(_*_)
 
 List.flatMap(l)(i ⇒ List(i, i))
