@@ -56,12 +56,83 @@ object Tree {
     case Branch(l, r) ⇒ Branch(map(l)(f), map(r)(f))
   }
 
+  /////////////////
+  // Exercise 29 //
+  // Fold        //
+  /////////////////
+  // def fold[A, B](t: Tree[A], z: A ⇒ B)(f: (B, B) ⇒ B): B = t match {
+  //   case Leaf(a) ⇒ z(a)
+  //   case Branch(l, r) ⇒ f(fold(l, z)(f),  fold(r, z)(f))
+  // }
+  /*
+   Like `foldRight` for lists, `fold` receives a "handler" for each of
+   the data constructors of the type, and recursively
+   accumulates some value using these handlers. As with `foldRight`,
+   `fold(t)(Leaf(_))(Branch(_,_)) == t`, and we can use
+   this function to implement just about any recursive function
+   that would otherwise be defined by pattern matching.
+   */
+  def fold[A,B](t: Tree[A])(f: A ⇒ B)(g: (B, B) ⇒ B): B = t match {
+    case Leaf(a) ⇒ f(a)
+    case Branch(l, r) ⇒ g(fold(l)(f)(g), fold(r)(f)(g))
+  }
+
+  def sizeViaFold[A](t: Tree[A]): Int =
+    fold(t)(_ ⇒ 1)(_ + _ + 1)
+
+  def maximumViaFold(t: Tree[Int]): Int =
+    fold(t)(a ⇒ a)(_ max _)
+
+  def depthViaFold[A](t: Tree[A]): Int =
+    fold(t)(_ ⇒ 0)(_ max _ + 1)
+
+  /*
+  Note the type annotation required on the expression `Leaf(f(a))`.
+   Without this annotation, we get an error like this:
+
+  type mismatch;
+    found   : fpinscala.datastructures.Branch[B]
+    required: fpinscala.datastructures.Leaf[B]
+       fold(t)(a => Leaf(f(a)))(Branch(_,_))
+                                      ^
+
+  This error is an unfortunate consequence of Scala using subtyping
+  to encode algebraic data types. Without the annotation, the result
+  type of the fold gets inferred as `Leaf[B]` and it is then expected
+  that the second argument to `fold` will return `Leaf[B]`, which it
+   doesn't (it returns `Branch[B]`). Really, we'd prefer Scala to
+  infer `Tree[B]` as the result type in both cases. When working with
+  algebraic data types in Scala, it's somewhat common to define helper
+  functions that simply call the corresponding data constructors but
+  give the less specific result type:
+
+    def leaf[A](a: A): Tree[A] = Leaf(a)
+    def branch[A](l: Tree[A], r: Tree[A]): Tree[A] = Branch(l, r)
+  */
+  // def mapViaFold[A, B](t: Tree[A])(f: A ⇒ B): Tree[B] =
+  //   fold(t)(a ⇒ Branch(Leaf(f(a)), Leaf(f(a))))((l, r) ⇒
+  //     (l, r) match { case (Branch(l1, r1), Branch(l2, r2)) ⇒ Branch(l1, l2) })
+  def mapViaFold[A, B](t: Tree[A])(f: A ⇒ B): Tree[B] =
+    fold(t)(a ⇒ Leaf(f(a)): Tree[B])(Branch(_,_))
+
 }
-val t2 = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(4)))
+
+
+
+
 val t2 = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Branch(Leaf(10), Leaf(12))))
 val t = Branch(Leaf(1), Leaf(2))
-Tree.size(t)
+
+Tree.size(t2)
+Tree.sizeViaFold(t2)
+
 Tree.maximum(t2)
+Tree.maximumViaFold(t2)
+
 Tree.depth(t2)
-Tree.map(t2)(_^2)
+Tree.depthViaFold(t2)
+
+
+Tree.map(t2)(_+1)
+Tree.mapViaFold(t2)(_+1)
 
