@@ -181,6 +181,7 @@ object Option {
   // Exercise 6 //
   // Traverse   //
   ////////////////
+  //WRONG
   // def traverse[A, B](l: List[A])(f: A ⇒ Option[B]): Option[List[B]] = l match {
   //   case Nil ⇒ Nil
   //   case h :: t ⇒ f(h) flatMap (_ ⇒ traverse(t)(f))
@@ -189,6 +190,13 @@ object Option {
     case Nil ⇒ Some(Nil)
     case h :: t ⇒ map2(f(h), traverse(t)(f))(_ :: _)
   }
+  def traverse_1[A, B](l: List[A])(f: A ⇒ Option[B]): Option[List[B]] =
+    l.foldRight[Option[List[B]]](Some(Nil))((h, t) ⇒ map2(f(h), t)(_ :: _))
+
+  def sequenceViaTraverse[A](a: List[Option[A]]): Option[List[A]] =
+    traverse(a)(_)
+
+
 }
 
 
