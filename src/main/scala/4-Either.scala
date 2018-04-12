@@ -54,21 +54,23 @@ object Either {
   // Exercise 8            //
   // Sequence and traverse //
   ///////////////////////////
+  // def traverse[E, A, B](l: List[A])(f: A ⇒ Either[E, B]): Either[E, List[B]] =
+  //   l match {
+  //     case h :: t ⇒ f(h).map2(traverse(t)(f))(_ :: _)
+  //   }
   def traverse[E, A, B](l: List[A])(f: A ⇒ Either[E, B]): Either[E, List[B]] =
-    match l {
-
+    l match {
+      case Nil ⇒ Right(Nil)
+      case h :: t ⇒ (f(h) map2 (traverse(t)(f)))(_ :: _)
     }
-
-
-
 
 }
 
 
-val l = IndexedSeq(1.0, 2.0, 3.0, 4.0, 5.0)
-val l = IndexedSeq()
-val l = 1 to 10 toList
+// val l = IndexedSeq(1.0, 2.0, 3.0, 4.0, 5.0)
+// val l = IndexedSeq()
+// val l = 1 to 10 toList
 
-Either.mean(l)
-Either.safeDiv(0, 0)
+// Either.mean(l)
+// Either.safeDiv(0, 0)
 
