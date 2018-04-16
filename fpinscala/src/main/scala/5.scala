@@ -87,7 +87,40 @@ trait Stream[+A] {
     case Cons(h, t) if p(h()) ⇒ cons(h(), t() takeWhile p)
     case _ ⇒ empty
   }
+
+  ////////////////
+  // Exercise 4 //
+  ////////////////
+  // The arrow `=>` in front of the argument type `B` means that the function
+  // `f` takes its second argument by name and may choose not to evaluate it.
+  def foldRight[B](z: ⇒ B)(f: (A, ⇒ B) ⇒ B): B =
+    this match {
+      case Cons(h, t) ⇒ f(h(), t().foldRight(z)(f))
+      case _ ⇒ z
+    }
+  // Here `b` is the unevaluated recursive step that folds the tail of the stream.
+  // If `p(a)` returns `true`, `b` will never be evaluated and the computation terminates early.
+  def exists(p: A ⇒ Boolean): Boolean =
+    foldRight(false)((a, b) ⇒ p(a) || b)
+
+  /*
+   Since `&&` is non-strict in its second argument, this terminates
+   the traversal as soon as a nonmatching element is found.
+   */
+  def forAll(p: A ⇒ Boolean): Boolean =
+    foldRight(true)((a, b) ⇒ p(a) && b)
+
+  ////////////////
+  // Exercise 5 //
+  ////////////////
+  // def takeWhile2(p: A ⇒ Boolean): Stream[A] = {
+  //   foldRight(empty)((h, t) ⇒ { if (p(h)) t else empty })
+  // }
+  def takeWhile2(p: A ⇒ Boolean): Stream[A] =
+    foldRight(empty[A])((h, t) ⇒ if (p(h)) cons(h, t) else empty)
+
 }
+
 
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
