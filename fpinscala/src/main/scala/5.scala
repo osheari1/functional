@@ -2,8 +2,8 @@ import Stream._
 // import collection.immutable.Stream
 
 trait Stream[+A] {
-  def uncons: Option[(A, Stream[A])]
-  def isEmpty: Boolean = uncons.isEmpty
+  // def uncons: Option[(A, Stream[A])]
+  // def isEmpty: Boolean = uncons.isEmpty
 
   ////////////////
   // Exercise 1 //
@@ -52,28 +52,45 @@ trait Stream[+A] {
    we need to, by handling the special case where n == 1 separately. If n == 0, we can avoid looking
    at the stream at all.
    */
-  def take(n: Int): Stream[A] = {
-    @annotation.tailrec
-    def go(s: Stream[A], acc: Stream[A], n: Int): Stream[A] = s match {
-      case Cons(h, t) if n == 0 ⇒ s
-      case Cons(h, t) ⇒ go(t(), Cons(h , () ⇒ acc), n-1)
-    }
-    go(this, Stream(), n)
-  }
+  // def take(n: Int): Stream[A] = {
+  //   @annotation.tailrec
+  //   def go(s: Stream[A], acc: Stream[A], n: Int): Stream[A] = s match {
+  //     case Cons(h, t) if n == 0 ⇒ s
+  //     case Cons(h, t) ⇒ go(t(), Cons(h , () ⇒ acc), n-1)
+  //   }
+  //   go(this, Stream(), n)
+  // }
 
-  def take2(n: Int): Stream[A] = this match {
+  def take(n: Int): Stream[A] = this match {
     case Cons(h, t) if n > 1 ⇒ cons(h(), t().take(n - 1))
     case Cons(h, t) if n == 1 ⇒ cons(h(), empty)
     case _ ⇒ empty
   }
 
-
+  ////////////////
+  // Exercise 3 //
+  ////////////////
+  // def takeWhile(p: A ⇒ Boolean): Stream[A] = this match {
+  //   case Cons(h, t) if p(h()) ⇒ cons(h(), t().takeWhile(p))
+  //   case Cons(h, t) ⇒ cons(h(), empty)
+  //   case _ ⇒ empty
+  // }
+  // def takeWhile2(p: A ⇒ Boolean): Stream[A] = {
+  //   @annotation.tailrec
+  //   def go(s: Stream[A], acc: Stream[A])(p: A ⇒ Boolean): Stream[A] = s match {
+  //     case Cons(h, t) if p(h()) ⇒ go(t(), cons(h(), acc))(p)
+  //     case _ ⇒ acc
+  //   }
+  //   go(this, Stream())(p)
+  // }
+  def takeWhile(p: A ⇒ Boolean): Stream[A] = this match {
+    case Cons(h, t) if p(h()) ⇒ cons(h(), t() takeWhile p)
+    case _ ⇒ empty
+  }
 }
 
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
-
-
 
 
 
@@ -93,4 +110,10 @@ object Stream {
 
 
 
+
+// REPL
+///////////////////////////////////////////////
+val s = Stream(1, 2, 3, 4, 5, 6)
+Stream(1, 2, 3, 4, 5, 6).take(2).toList
+s.toListFast
 
