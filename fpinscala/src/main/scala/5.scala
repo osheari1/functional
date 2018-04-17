@@ -52,20 +52,20 @@ trait Stream[+A] {
    we need to, by handling the special case where n == 1 separately. If n == 0, we can avoid looking
    at the stream at all.
    */
-  // def take(n: Int): Stream[A] = {
-  //   @annotation.tailrec
-  //   def go(s: Stream[A], acc: Stream[A], n: Int): Stream[A] = s match {
-  //     case Cons(h, t) if n == 0 ⇒ s
-  //     case Cons(h, t) ⇒ go(t(), Cons(h , () ⇒ acc), n-1)
-  //   }
-  //   go(this, Stream(), n)
-  // }
-
-  def take(n: Int): Stream[A] = this match {
-    case Cons(h, t) if n > 1 ⇒ cons(h(), t().take(n - 1))
-    case Cons(h, t) if n == 1 ⇒ cons(h(), empty)
-    case _ ⇒ empty
+  def take(n: Int): Stream[A] = {
+    @annotation.tailrec
+    def go(s: Stream[A], acc: Stream[A], n: Int): Stream[A] = s match {
+      case Cons(h, t) if n == 0 ⇒ s
+      case Cons(h, t) ⇒ go(t(), Cons(h , () ⇒ acc), n-1)
+    }
+    go(this, Stream(), n)
   }
+
+  // def take(n: Int): Stream[A] = this match {
+  //   case Cons(h, t) if n > 1 ⇒ cons(h(), t().take(n - 1))
+  //   case Cons(h, t) if n == 1 ⇒ cons(h(), empty)
+  //   case _ ⇒ empty
+  // }
 
   ////////////////
   // Exercise 3 //
@@ -119,12 +119,27 @@ trait Stream[+A] {
   def takeWhile2(p: A ⇒ Boolean): Stream[A] =
     foldRight(empty[A])((h, t) ⇒ if (p(h)) cons(h, t) else empty)
 
+  ////////////////
+  // Exercise 6 //
+  ////////////////
+  def map[B](f: A ⇒ B): Stream[B] =
+    foldRight(empty[B])((h, t) ⇒ cons(f(h), t))
+
+  def filter(p: A ⇒ Boolean): Stream[A] =
+    foldRight(empty[A])((h, t) ⇒ if (p(h)) cons(h, t) else t)
+
+  def append[B>:A](s: ⇒ Stream[B]): Stream[B] =
+    foldRight(s)((h, t) ⇒ cons(h, t))
+
+  def flatMap[B](f: A ⇒ Stream[B]): Stream[B] =
+    foldRight[Stream[B]](empty[B])((h, t) ⇒ f(h) append t)
+
+
 }
 
 
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
-
 
 
 object Stream {
@@ -139,6 +154,46 @@ object Stream {
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty
     else cons(as.head, apply(as.tail: _*))
+
+  ////////////////
+  // Exercise 7 //
+  ////////////////
+  // Infinant streams
+  val ones: Stream[Int] = cons(1, ones)
+
+  // def constant[A](a: A): Stream[A] =
+  //   cons(a, constant(a))
+  def constant[A](a: A): Stream[A] = {
+    lazy val tail: Stream[A] = Cons(() ⇒ a, () ⇒ tail)
+    tail
+  }
+
+  /////////////////////////////
+  // Exercise 8              //
+  // Infinant stream of ints //
+  /////////////////////////////
+  // def from(n: Int): Stream[Int] = {
+  //   lazy val next: Stream[Int] = Cons(() ⇒ n + 1, () ⇒ next)
+  //   next
+  // }
+  def from(n: Int): Stream[Int] =
+    cons(n, from(n+1))
+
+  ////////////////////////
+  // Exercise 9         //
+  // Fibbonacci numbers //
+  ////////////////////////
+  // def fibNumbers[A]: Stream[Int] = {
+  //   def go(a: Int, b: Int): Stream[Int] =
+  //     cons(a, go(b, a+b))
+  //   go(0, 1)
+  // }
+  val fibs = {
+    def go(f0: Int, f1: Int): Stream[Int] =
+      cons(f0, go(f1, f0+f1))
+    go(0, 1)
+  }
+
 }
 
 
@@ -146,6 +201,10 @@ object Stream {
 
 // REPL
 ///////////////////////////////////////////////
+
+Stream.fibNumbers.take(5).toListRecursive
+
+
 val s = Stream(1, 2, 3, 4, 5, 6)
 Stream(1, 2, 3, 4, 5, 6).take(2).toList
 s.toListFast
