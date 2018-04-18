@@ -52,20 +52,20 @@ trait Stream[+A] {
    we need to, by handling the special case where n == 1 separately. If n == 0, we can avoid looking
    at the stream at all.
    */
-  def take(n: Int): Stream[A] = {
-    @annotation.tailrec
-    def go(s: Stream[A], acc: Stream[A], n: Int): Stream[A] = s match {
-      case Cons(h, t) if n == 0 ⇒ s
-      case Cons(h, t) ⇒ go(t(), Cons(h , () ⇒ acc), n-1)
-    }
-    go(this, Stream(), n)
-  }
-
-  // def take(n: Int): Stream[A] = this match {
-  //   case Cons(h, t) if n > 1 ⇒ cons(h(), t().take(n - 1))
-  //   case Cons(h, t) if n == 1 ⇒ cons(h(), empty)
-  //   case _ ⇒ empty
+  // def take(n: Int): Stream[A] = {
+  //   @annotation.tailrec
+  //   def go(s: Stream[A], acc: Stream[A], n: Int): Stream[A] = s match {
+  //     case Cons(h, t) if n == 0 ⇒ s
+  //     case Cons(h, t) ⇒ go(t(), Cons(h , () ⇒ acc), n-1)
+  //   }
+  //   go(this, Stream(), n)
   // }
+
+  def take(n: Int): Stream[A] = this match {
+    case Cons(h, t) if n > 1 ⇒ cons(h(), t().take(n - 1))
+    case Cons(h, t) if n == 1 ⇒ cons(h(), empty)
+    case _ ⇒ empty
+  }
 
   ////////////////
   // Exercise 3 //
@@ -133,6 +133,77 @@ trait Stream[+A] {
 
   def flatMap[B](f: A ⇒ Stream[B]): Stream[B] =
     foldRight[Stream[B]](empty[B])((h, t) ⇒ f(h) append t)
+
+  /////////////////
+  // Exercise 12 //
+  /////////////////
+  def mapViaUnfold[B](f: A ⇒ B): Stream[B] =
+    unfold(this) {
+        case Cons(h, t) ⇒ Some((f(h()), t()))
+        case empty ⇒ None
+    }
+
+  // def takeViaUnfold(n: Int): Stream[A] =
+  //   unfold((this, n)) {
+  //     case (Cons(h, t), i) if i > 1 ⇒ Some(h(), (t(), i-1))
+  //     case (Cons(h, t), i) if i == 1 ⇒ Some(h(), (empty, i-1))
+  //     case (empty, i) ⇒ None
+  //     }
+  def takeViaUnfold(n: Int): Stream[A] =
+    unfold((this, n)) {
+      case (Cons(x, xs), 1) ⇒ Some((x(), (empty, 0)))
+      case (Cons(x, xs), n) if n > 1 ⇒ Some((x(), (xs(), n-1)))
+      case _ ⇒ None
+    }
+  def takeWhileViaUnfold(p: A ⇒ Boolean): Stream[A] =
+    unfold(this) {
+      case Cons(x, xs) if p(x()) ⇒ Some((x(), xs()))
+      case _ ⇒ None
+    }
+
+  // def zipWithViaUnfold[B, C](s: Stream[B])(f: (A, B) ⇒ C): Stream[C] =
+  //   unfold((this, s)) {
+  //     case (Cons(x, xs), empty) ⇒ None
+  //     case (empty, Cons(y, ys)) ⇒ None
+  //     case (Cons(x, xs), Cons(y, ys)) ⇒ Some((f(x(), y()), (xs(), ys())))
+  //   }
+  def zipWithViaUnfold[B, C](s: Stream[B])(f: (A, B) ⇒ C): Stream[C] =
+    unfold((this, s)) {
+      case (Cons(x, xs), Cons(y, ys)) ⇒ Some((f(x(), y()), (xs(), ys())))
+      case _ ⇒ None
+    }
+  def zipViaUnfold[B](s: Stream[B]): Stream[(A, B)] =
+    zipWithViaUnfold(s)((_, _))
+
+  // def zipViaUnfold[B](s: Stream[B]): Stream[(A, B)] =
+  //   unfold((this, s)) {
+  //     case (Cons(x, xs), empty) ⇒ None
+  //     case (empty, Cons(y, ys)) ⇒ None
+  //     case (Cons(x, xs), Cons(y, ys)) ⇒ Some(((x(), y()), (xs(), ys())))
+  //   }
+  // def zipAll[B](s: Stream[B]): Stream[(Option[A], Option[B])] =
+  //   unfold((this, s)) {
+  //     case (Cons(x, xs), Cons(y, ys)) ⇒ Some(((Some(x()), Some(y())), (xs(), ys())))
+  //     case (empty, Cons(y, ys)) ⇒ Some(((None, Some(y())), (empty, ys())))
+  //     case (Cons(x, xs), empty) ⇒ Some(((Some(x()), None), (xs(), empty)))
+  //   }
+  def zipWithAllViaUnfold[B, C](s: Stream[B])(f: (Option[A], Option[B]) ⇒ C): Stream[C] =
+    Stream.unfold((this, s2)) {
+      case (Empty, Empty) => None
+      case (Cons(h, t), Empty) => Some(f(Some(h()), Option.empty[B]) -> (t(), empty[B]))
+      case (Empty, Cons(h, t)) => Some(f(Option.empty[A], Some(h())) -> (empty[A] -> t()))
+      case (Cons(h1, t1), Cons(h2, t2)) => Some(f(Some(h1()), Some(h2())) -> (t1() -> t2()))
+    }
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] =
+    zipWithAllViaUnfold(s2)((_,_))
+
+
+
+
+
+
+
+
 }
 
 
