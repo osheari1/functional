@@ -133,8 +133,6 @@ trait Stream[+A] {
 
   def flatMap[B](f: A ⇒ Stream[B]): Stream[B] =
     foldRight[Stream[B]](empty[B])((h, t) ⇒ f(h) append t)
-
-
 }
 
 
@@ -193,6 +191,16 @@ object Stream {
       cons(f0, go(f1, f0+f1))
     go(0, 1)
   }
+
+  /////////////////
+  // Exercise 10 //
+  /////////////////
+  def unfold[A, S](z: S)(f: S ⇒ Option[(A, S)]): Stream[A] =
+    f(z) match {
+      case Some((h, s)) ⇒ cons(h, unfold(s)(f))
+      case None ⇒ empty
+    }
+
 
 }
 
