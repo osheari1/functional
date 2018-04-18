@@ -201,6 +201,41 @@ object Stream {
       case None ⇒ empty
     }
 
+  /////////////////
+  // Exercise 11 //
+  /////////////////
+  /*
+   Scala provides shorter syntax when the first action of a
+   function literal is to match on an expression.  The function passed
+   to `unfold` in `fibsViaUnfold` is equivalent to
+   `p => p match { case (f0,f1) => ... }`, but we avoid having
+   to choose a name for `p`, only to pattern match on it.
+   */
+  // val fibsViaUnfold: Stream[Int] =
+  //   unfold((0, 1))((s) ⇒ Some((f0+f1, (f1, f0+f1))))
+  // val fibsViaUnfold: Stream[Int] =
+  //   unfold((0, 1))({
+  //                    case (f0, f1) ⇒ Some((f0, (f1, f1+f0)))
+  //                  })
+  val fibsViaUnfold =
+    unfold((0, 1))(p ⇒ p match {
+                     case (f0, f1) ⇒ Some((f0, (f1, f1+f0)))
+                   })
+
+  // def fromViaUnfold(n: Int): Stream[Int] =
+  //   unfold((n, n+1))({case (n0, n1) ⇒ Some((n1, (n1, n1+1)))})
+  def fromViaUnfold(n: Int): Stream[Int] =
+    unfold(n)(n ⇒ Some(n, n+1))
+
+  def constantViaUnfold[A](a: A): Stream[A] =
+    unfold(a)(_ ⇒ Some(a, a))
+
+  // def onesViaUnfold: Stream[Int] =
+  //   unfold(1)(_ ⇒ Some(1, 1))
+  val onesViaUnfold = unfold(1)(_ ⇒ Some((1, 1)))
+
+
+
 
 }
 
