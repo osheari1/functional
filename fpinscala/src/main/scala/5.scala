@@ -181,25 +181,34 @@ trait Stream[+A] {
   //     case (empty, Cons(y, ys)) ⇒ None
   //     case (Cons(x, xs), Cons(y, ys)) ⇒ Some(((x(), y()), (xs(), ys())))
   //   }
-  // def zipAll[B](s: Stream[B]): Stream[(Option[A], Option[B])] =
-  //   unfold((this, s)) {
-  //     case (Cons(x, xs), Cons(y, ys)) ⇒ Some(((Some(x()), Some(y())), (xs(), ys())))
-  //     case (empty, Cons(y, ys)) ⇒ Some(((None, Some(y())), (empty, ys())))
-  //     case (Cons(x, xs), empty) ⇒ Some(((Some(x()), None), (xs(), empty)))
-  //   }
-  def zipWithAllViaUnfold[B, C](s: Stream[B])(f: (Option[A], Option[B]) ⇒ C): Stream[C] =
-    Stream.unfold((this, s2)) {
-      case (Empty, Empty) => None
-      case (Cons(h, t), Empty) => Some(f(Some(h()), Option.empty[B]) -> (t(), empty[B]))
-      case (Empty, Cons(h, t)) => Some(f(Option.empty[A], Some(h())) -> (empty[A] -> t()))
-      case (Cons(h1, t1), Cons(h2, t2)) => Some(f(Some(h1()), Some(h2())) -> (t1() -> t2()))
+  def zipAll[B](s: Stream[B]): Stream[(Option[A], Option[B])] =
+    unfold((this, s)) {
+      case (Cons(x, xs), Cons(y, ys)) ⇒ Some(((Some(x()), Some(y())), (xs(), ys())))
+      case (empty, Cons(y, ys)) ⇒ Some(((None, Some(y())), (empty, ys())))
+      case (Cons(x, xs), empty) ⇒ Some(((Some(x()), None), (xs(), empty)))
     }
-  def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] =
-    zipWithAllViaUnfold(s2)((_,_))
+  // def zipWithAllViaUnfold[B, C](s: Stream[B])(f: (Option[A], Option[B]) ⇒ C): Stream[C] =
+  //   Stream.unfold((this, s2)) {
+  //     case (Empty, Empty) => None
+  //     case (Cons(h, t), Empty) => Some(f(Some(h()), Option.empty[B]) -> (t(), empty[B]))
+  //     case (Empty, Cons(h, t)) => Some(f(Option.empty[A], Some(h())) -> (empty[A] -> t()))
+  //     case (Cons(h1, t1), Cons(h2, t2)) => Some(f(Some(h1()), Some(h2())) -> (t1() -> t2()))
+  //   }
+  // def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] =
+  //   zipWithAllViaUnfold(s2)((_,_))
 
-
-
-
+  /////////////////
+  // Exercise 13 //
+  /////////////////
+  /*
+   `s startsWith s2` when corresponding elements of `s` and `s2` are all equal,
+   until the point that `s2` is exhausted. If `s` is exhausted first, or we find
+   an element that doesn't match, we terminate early. Using non-strictness, we can
+   compose these three separate logical steps--the zipping, the termination when the
+   second stream is exhausted, and the termination if a nonmatching element is found or the first stream is exhausted.
+   */
+  def startsWith[A](s: Stream[A]): Boolean =
+    zipAll(s).takeWhile(!_._2.isEmpty) forAll {case (h, h2) ⇒ h == h2}
 
 
 
@@ -304,6 +313,8 @@ object Stream {
   // def onesViaUnfold: Stream[Int] =
   //   unfold(1)(_ ⇒ Some(1, 1))
   val onesViaUnfold = unfold(1)(_ ⇒ Some((1, 1)))
+
+
 
 
 
