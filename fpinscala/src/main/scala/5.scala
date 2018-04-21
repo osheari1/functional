@@ -5,6 +5,18 @@ trait Stream[+A] {
   // def uncons: Option[(A, Stream[A])]
   // def isEmpty: Boolean = uncons.isEmpty
 
+  /*
+   Create a new Stream[A] from this, but ignore the n first elements.
+   This can be achieved by recursively calling
+   drop on the invoked tail of a cons cell. Note that the
+   implementation is also tail recursive.
+   */
+  @annotation.tailrec
+  final def drop(n: Int): Stream[A] = this match {
+    case Cons(_, t) if n > 0 ⇒ t() drop (n-1)
+    case _ ⇒ this
+  }
+
   ////////////////
   // Exercise 1 //
   ////////////////
@@ -205,13 +217,57 @@ trait Stream[+A] {
    until the point that `s2` is exhausted. If `s` is exhausted first, or we find
    an element that doesn't match, we terminate early. Using non-strictness, we can
    compose these three separate logical steps--the zipping, the termination when the
-   second stream is exhausted, and the termination if a nonmatching element is found or the first stream is exhausted.
+   second stream is exhausted, and the termination if a nonmatching element is found
+   or the first stream is exhausted.
    */
   def startsWith[A](s: Stream[A]): Boolean =
-    zipAll(s).takeWhile(!_._2.isEmpty) forAll {case (h, h2) ⇒ h == h2}
+    zipAll(s).takeWhile(!_._2.isEmpty) forAll {
+      case (h, h2) ⇒ h == h2
+    }
 
+  /////////////////
+  // Exercise 14 //
+  /////////////////
+  /*
+   The last element of `tails` is always the empty `Stream`,
+   so we handle this as a special case, by appending it to the output.
+   */
+  // def tails: Stream[Stream[A]] =
+  //   unfold(this) {
+  //     case Cons(x, xs) ⇒ Some((xs(), xs()))
+  //   }
+  def tails: Stream[Stream[A]] =
+    unfold(this) {
+      case Empty ⇒ None
+      case s ⇒ Some((s, s drop 1))
+    }
 
+  def hasSubsequence[A](s: Stream[A]): Boolean =
+    tails exists (_ startsWith s)
 
+  /////////////////
+  // Exercise 15 //
+  /////////////////
+  /*
+   The function can't be implemented using `unfold`, since `unfold`
+   generates elements of the `Stream` from left to right.
+   It can be implemented using `foldRight` though.
+
+   The implementation is just a `foldRight` that keeps the
+   accumulated value and the stream of intermediate results,
+   which we `cons` onto during each iteration.
+   When writing folds, it's common to have more state
+   in the fold than is needed to compute the result.
+   Here, we simply extract the accumulated list once finished.
+   */
+  def scanRight[B](z: B)(f: (A, ⇒ B) ⇒ B): Stream[B] =
+    foldRight((z, Stream(z)))((a, p0) ⇒ {
+    // p0 is passed by-name and used in by-name args in f and cons.
+    // So use lazy val to ensure only one evaluation...
+                                lazy val p1 = p0
+                                val b = f(a, p1._1)
+                                (b2, cons(b2, p1._2)) 
+                              })._2
 
 }
 
