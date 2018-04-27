@@ -2,6 +2,7 @@ trait RNG {
   def nextInt: (Int, RNG)
 }
 
+
 object RNG {
 
   case class Simple(seed: Long) extends RNG {
@@ -119,6 +120,39 @@ object RNG {
     go(count, rng, List())
   }
 
+  type Rand[+A] = RNG ⇒ (A, RNG)
+
+  val int: Rand[Int] = _.nextInt
+
+  def unit[A](a: A): Rand[A] =
+    rng ⇒ (a, rng)
+
+  def map[A, B](s: Rand[A])(f: A ⇒ B): Rand[B] =
+    rng ⇒ {
+      val (i, rng2) = s(rng)
+      (f(i), rng2)
+    }
+
+  ////////////////
+  // Exercise 5 //
+  ////////////////
+  // def positiveMax(n: Int)(rng: RNG): Rand[Int] =
+  //   map(rng)()(
+
+  ////////////////
+  // Exercise 6 //
+  ////////////////
+  val double2: Rand[Double] =
+    map(nonNegativeInt)(_ / (Int.MaxValue.toDouble + 1))
+
+
+
+
+
+
+
 }
+
+RNG.Simple(1)
 
 (Int.MinValue - 1).abs
