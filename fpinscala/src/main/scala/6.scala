@@ -136,8 +136,8 @@ object RNG {
   ////////////////
   // Exercise 5 //
   ////////////////
-  // def positiveMax(n: Int)(rng: RNG): Rand[Int] =
-  //   map(rng)()(
+  def positiveMax(n: Int): Rand[Int] =
+    map(double)(x ⇒ (x * n).abs.toInt)
 
   ////////////////
   // Exercise 6 //
@@ -145,8 +145,43 @@ object RNG {
   val double2: Rand[Double] =
     map(nonNegativeInt)(_ / (Int.MaxValue.toDouble + 1))
 
+  ////////////////
+  // Exercise 7 //
+  ////////////////
+  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) ⇒ C): Rand[C] =  {
+    rng ⇒ {
+      val(a, rng2) = ra(rng)
+      val(b, rng3) = rb(rng2)
+      (f(a, b), rng3)
+    }
 
-
+    ////////////////
+    // Exercise 8 //
+    ////////////////
+    // In `sequence`, the base case of the fold is a `unit` action that returns
+    // the empty list. At each step in the fold, we accumulate in `acc`
+    // and `f` is the current element in the list.
+    // `map2(f, acc)(_ :: _)` results in a value of type `Rand[List[A]]`
+    // We map over that to prepend (cons) the element onto the accumulated list.
+    //
+    // We are using `foldRight`. If we used `foldLeft` then the values in the
+    // resulting list would appear in reverse order. It would be arguably better
+    // to use `foldLeft` followed by `reverse`. What do you think?
+    // def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = {
+    //   def go(fs: List[Rand[A]], acc: List[A]): Rand[List[A]] =
+    //     rng ⇒ {
+    //       fs match {
+    //         case Nil ⇒ (acc, rng)
+    //         case h :: t ⇒ {
+    //           val (i, rng2) = h(rng)
+    //           (i :: acc, rng2)
+    //         }
+    //       }
+    //     }
+    //   go(fs, List())
+    // }
+    def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+      (fs foldRight unit(List[A]()))((f, acc) ⇒ map2(f, acc)(_ :: _))
 
 
 
