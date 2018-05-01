@@ -148,16 +148,17 @@ object RNG {
   ////////////////
   // Exercise 7 //
   ////////////////
-  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) ⇒ C): Rand[C] =  {
+  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) ⇒ C): Rand[C] = {
     rng ⇒ {
       val(a, rng2) = ra(rng)
       val(b, rng3) = rb(rng2)
       (f(a, b), rng3)
     }
+  }
 
-    ////////////////
-    // Exercise 8 //
-    ////////////////
+  ////////////////
+  // Exercise 8 //
+  ////////////////
     // In `sequence`, the base case of the fold is a `unit` action that returns
     // the empty list. At each step in the fold, we accumulate in `acc`
     // and `f` is the current element in the list.
@@ -180,14 +181,19 @@ object RNG {
     //     }
     //   go(fs, List())
     // }
-    def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
-      (fs foldRight unit(List[A]()))((f, acc) ⇒ map2(f, acc)(_ :: _))
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+    (fs foldRight unit(List[A]()))((f, acc) ⇒ map2(f, acc)(_ :: _))
+
+  def ints2(count: Int): Rand[List[Int]] =
+    // TODO
+
+
 
 
 
 
 }
 
-RNG.Simple(1)
+// RNG.Simple(1)
 
-(Int.MinValue - 1).abs
+// (Int.MinValue - 1).abs
