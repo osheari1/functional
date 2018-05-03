@@ -184,13 +184,13 @@ object RNG {
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
     (fs foldRight unit(List[A]()))((f, acc) ⇒ map2(f, acc)(_ :: _))
 
+  // It's interesting that we never actually need to talk about the `RNG` value
+  // in `sequence`. This is a strong hint that we could make this function
+  // polymorphic in that type.
+  // def ints2(count: Int): Rand[List[Int]] =
+  //   sequence(List.fill(count)(_.nextInt))
   def ints2(count: Int): Rand[List[Int]] =
-    // TODO
-
-
-
-
-
+    sequence(List.fill(count)(int))
 
 }
 
