@@ -219,10 +219,66 @@ object RNG {
     }
   }
 
+  /////////////////
+  // Exercise 10 //
+  /////////////////
+  def mapViaFlatMap[A, B](s: Rand[A])(f: A ⇒ B): Rand[B] = {
+    flatMap(s)(i ⇒ unit(f(i)))
+  }
+
+  // def map2ViaFlatMap[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) ⇒ C): Rand[C] =
+  //   flatMap(ra) { a ⇒
+  //     flatMap(rb)(b ⇒ unit(f(a, b)))
+  //   }
+  def map2ViaFlatMap[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) ⇒ C): Rand[C] =
+    flatMap(ra)(a ⇒ map(rb)(b ⇒ f(a, b)))
 
 
 }
 
-// RNG.Simple(1)
+////////////////////////////////////////////////////////////////////////////////
+// State
+////////////////////////////////////////////////////////////////////////////////
+import State._
 
-// (Int.MinValue - 1).abs
+/////////////////
+// Exercise 11 //
+/////////////////
+case class State[S, +A](run: S ⇒ (A, S)) {
+  def map[B](f: A ⇒ B): State[S, B] =
+    flatMap(a ⇒ unit(f(a)))
+
+  def map2[B, C](sb: State[S, B])(f: (A, B) ⇒ C): State[S, C] =
+    flatMap (a ⇒ sb map (b ⇒ f(a, b)))
+
+  def flatMap[B](f: A ⇒ State[S, B]): State[S, B] =
+    State {s ⇒
+      val (a, s1) = run(s)
+      f(a) run(s1)
+    }
+
+
+
+}
+
+
+object State {
+  // def unit[S,A](a: A): State[S, A]=
+  //   State { (s: S) ⇒
+  //     (a, s)
+  //   }
+  def unit[S, A](a: A): State[S, A] =
+    State(s ⇒ (a, s))
+
+  // def sequenceViaFoldRight[S, A](l: List[State[S, A]]): State[S, List[A]] =
+  //   (l foldRight unit[S, List[A]](List[A]())) ((h, acc) ⇒ ((h map2 acc) (_ :: _)))
+
+  def sequenceViaFoldRight[S, A](l: List[State[S, A]]): State[S, List[A]] =
+    l.foldRight(unit[S, List[A]](List()))((f, acc) ⇒ f.map2(acc)(_ :: _))
+
+
+
+}
+
+
+
