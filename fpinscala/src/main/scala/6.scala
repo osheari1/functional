@@ -16,6 +16,8 @@ object RNG {
       // The return value is a tuple containing both a pseudo-random integer and the next `RNG` state.
       (n, nextRNG)
     }
+
+    override def equals(that: Any): Boolean = ???
   }
   // def simple(seed: Long): RNG = new RNG { def nextInt = {
   //                                          val seed2 = (seed*0x5DEECE66DL + 0xBL) & ((1L << 48) - 1)
@@ -254,10 +256,10 @@ case class State[S, +A](run: S ⇒ (A, S)) {
   def flatMap[B](f: A ⇒ State[S, B]): State[S, B] =
     State {s ⇒
       val (a, s1) = run(s)
-      f(a) run(s1)
+      f(a) run s1
     }
 
-
+  override def equals(that: Any): Boolean = ???
 
 }
 
