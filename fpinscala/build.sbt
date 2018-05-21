@@ -1,12 +1,5 @@
-val dottyVersion = "0.8.0-RC1"
+name := "fpinscala"
 
-lazy val root = project
-  .in(file("."))
-  .settings(
-    name := "dotty-simple",
-    version := "0.1.0",
+version := "0.1"
 
-    scalaVersion := dottyVersion,
-
-    libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
-  )
+scalaVersion := "2.12.6"
