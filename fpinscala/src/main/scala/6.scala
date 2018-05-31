@@ -256,7 +256,7 @@ case class State[S, +A](run: S ⇒ (A, S)) {
 
   def flatMap[B](f: A ⇒ State[S, B]): State[S, B] =
     State {s ⇒
-      val (a, s1) = run(s)
+      val (a, s1): (A, S) = run(s)
       f(a) run s1
     }
 
@@ -296,13 +296,19 @@ object State {
     l.reverse.foldLeft(unit[S, List[A]](List()))((acc, f) => f.map2(acc)(_ :: _))
 
   def modify[S](f: S => S): State[S, Unit] = for {
-    s <- get // gets the current state and assigns it to 's'.
-    _ <- set(f(s))
+    a <- get
+    _ <- set(f(a))
   } yield ()
 
-  def get[S]: State[S, S] = State(s => (s, s))
+/*  Exercise 12
+  Getters and setters*/
+//  def get[S, A](s: State[S, A]): A =
+  def get[S]: State[S, S] =
+    State {s => (s, s)}
 
-  def set[S](s: S): State[S, Unit] = State(_ => ((), s))
+//  def set[S](s: State[S, Unit], s2: S): State[S, S] =
+  def set[S](s: S): State[S, Unit] = State {_ => ((), s)}
+
 
 
 }
