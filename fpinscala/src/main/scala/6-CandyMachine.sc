@@ -1,3 +1,4 @@
+import State._
 sealed trait Input
 
 case class Machine(locked: Boolean, candies: Int, coins: Int) {
@@ -23,5 +24,10 @@ object Candy {
       case (Turn, Machine(false, candy, coin)) =>
         Machine(locked = true, candy - 1, coin)
     }
+
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = for {
+    _ <- sequence(inputs map (modify[Machine] _ compose update))
+    s <- get
+  } yield (s.coins, s.candies)
 }
 
