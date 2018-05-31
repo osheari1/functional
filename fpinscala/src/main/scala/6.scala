@@ -17,6 +17,7 @@ object RNG {
       (n, nextRNG)
     }
 
+//    override def equals(that: Any): Boolean = ???
     override def equals(that: Any): Boolean = ???
   }
   // def simple(seed: Long): RNG = new RNG { def nextInt = {
@@ -278,6 +279,30 @@ object State {
   def sequenceViaFoldRight[S, A](l: List[State[S, A]]): State[S, List[A]] =
     l.foldRight(unit[S, List[A]](List()))((f, acc) ⇒ f.map2(acc)(_ :: _))
 
+  // This implementation uses a loop internally and is the same recursion
+  // pattern as a left fold. It is quite common with left folds to build
+  // up a list in reverse order, then reverse it at the end.
+  // (We could also use a collection.mutable.ListBuffer internally.)
+  def sequence[S,A](sas: List[State[S, A]]): State[S, List[A]] = {
+      def go(s: S, actions: List[State[S, A]], acc: List[A]): (List[A], S) =
+        actions match {
+          case Nil => (acc.reverse, s)
+          case h :: t => h.run(s) match { case (a, s2) => go(s2, t, a :: acc)}
+        }
+    State((s: S) => go(s, sas, List()))
+    }
+
+  def sequenceViaFoldLeft[S, A](l: List[State[S, A]]): State[S, List[A]] =
+    l.reverse.foldLeft(unit[S, List[A]](List()))((acc, f) => f.map2(acc)(_ :: _))
+
+  def modify[S](f: S => S): State[S, Unit] = for {
+    s <- get // gets the current state and assigns it to 's'.
+    _ <- set(f(s))
+  } yield ()
+
+  def get[S]: State[S, S] = State(s => (s, s))
+
+  def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 
 
 }
